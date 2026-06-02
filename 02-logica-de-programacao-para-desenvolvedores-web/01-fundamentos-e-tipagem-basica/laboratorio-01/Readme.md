@@ -1,9 +1,30 @@
-# Laboratório 1: Gerador de Prompt para IA com TypeScript
+<p align="center">
+  <img src="../../../assets/logo_utfpr.png" alt="UTPR Logo" width="200" />
+</p>
+
+<h1 align="center"><strong>Pós-Graduação em Desenvolvimento Web com TypeScript e Inteligência Artificial</strong></h1>
+
+<p align="center">
+  👨‍🎓 <strong>Aluno:</strong> Bruno E. M. Ferreira  |  🎓 <strong>Turma:</strong> 2026
+</p>
+
+<p align="center">
+  <strong>Tecnologias utilizadas nessa disciplina</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript Badge" />
+  <img src="https://img.shields.io/badge/Inteligência%20Artificial-FF6A00?style=for-the-badge&logo=robot&logoColor=white" alt="AI Badge" />
+</p>
+
+## Laboratório 1: Gerador de Prompt para IA com TypeScript
 
 ## Objetivo
+
 Neste laboratório, você irá desenvolver um pequeno gerador de prompts para Inteligência Artificial utilizando TypeScript.
 
 O objetivo é praticar:
+
 - declaração de variáveis tipadas
 - utilização de tipos primitivos
 - uso de Template Literals
@@ -12,6 +33,7 @@ O objetivo é praticar:
 - integração entre TypeScript e ferramentas de IA
 
 ## Tarefa 1 — Estrutura Base
+
 Crie um arquivo chamado `ai-prompt.ts`.
 
 Declare as seguintes variáveis tipadas:
@@ -24,9 +46,11 @@ let premiumUser: boolean = true;
 ```
 
 ## Tarefa 2 — Construção do Prompt
+
 Crie uma variável chamada `promptMessage`.
 
 Utilizando Template Literals:
+
 - exiba o nome do usuário
 - informe o tema solicitado
 - mostre a quantidade máxima de tokens
@@ -42,6 +66,7 @@ Access Level: ${premiumUser ? "Premium User" : "Free User"}`;
 ```
 
 ## Tarefa 3 — Exibição do Resultado
+
 Exiba o conteúdo utilizando:
 
 ```ts
@@ -49,6 +74,7 @@ console.log(promptMessage);
 ```
 
 ## Tarefa 4 — Testes de Tipagem
+
 Realize os seguintes testes no VS Code.
 
 - Teste 1 — Alteração válida:
@@ -64,21 +90,25 @@ maxTokens = "500";
 ```
 
 Observe:
+
 - o comportamento do compilador
 - o erro exibido pelo TypeScript
 - a diferença entre tipagem dinâmica e tipagem estática
 
 ## Tarefa 5 — Revisão com Inteligência Artificial
+
 Copie seu código e envie para uma IA utilizando o prompt:
 
 > Atue como um revisor de código TypeScript. Verifique se os tipos primitivos foram utilizados corretamente e sugira melhorias de legibilidade e organização.
 
 Analise:
+
 - sugestões recebidas
 - melhorias propostas
 - como a tipagem auxilia ferramentas modernas de IA
 
 ## Resultado Esperado
+
 Ao executar o programa, o terminal deverá apresentar uma saída semelhante a:
 
 ```
@@ -89,7 +119,9 @@ Access Level: Premium User
 ```
 
 ## Competências Desenvolvidas
+
 Ao final deste laboratório, espera-se que o estudante seja capaz de:
+
 - compreender tipagem estática
 - utilizar tipos primitivos em TypeScript
 - construir strings dinâmicas com Template Literals

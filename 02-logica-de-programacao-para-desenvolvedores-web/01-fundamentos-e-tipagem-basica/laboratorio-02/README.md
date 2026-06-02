@@ -1,10 +1,30 @@
-# Laboratório 02 — Inferência de Tipo vs. Tipagem Explícita
+<p align="center">
+  <img src="../../../assets/logo_utfpr.png" alt="UTPR Logo" width="200" />
+</p>
+
+<h1 align="center"><strong>Pós-Graduação em Desenvolvimento Web com TypeScript e Inteligência Artificial</strong></h1>
+
+<p align="center">
+  👨‍🎓 <strong>Aluno:</strong> Bruno E. M. Ferreira  |  🎓 <strong>Turma:</strong> 2026
+</p>
+
+<p align="center">
+  <strong>Tecnologias utilizadas nessa disciplina</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript Badge" />
+  <img src="https://img.shields.io/badge/Inteligência%20Artificial-FF6A00?style=for-the-badge&logo=robot&logoColor=white" alt="AI Badge" />
+</p>
+
+## Laboratório 02 — Inferência de Tipo vs. Tipagem Explícita
 
 ## Condições de conclusão
 
 Neste laboratório, você continuará o desenvolvimento dos conceitos estudados em TypeScript, explorando como o compilador realiza inferência automática de tipos e quando a tipagem explícita se torna necessária.
 
 Durante a atividade, serão praticados:
+
 - inferência de tipos;
 - tipagem explícita;
 - análise de comportamento do compilador;
@@ -17,6 +37,7 @@ Durante a atividade, serão praticados:
 O TypeScript não é apenas um "verificador de erros". Ele funciona como um mecanismo inteligente de análise estática capaz de interpretar o fluxo do código, prever comportamentos e auxiliar o desenvolvedor em tempo real.
 
 Na prática, isso significa que o compilador frequentemente consegue identificar automaticamente os tipos das variáveis sem necessidade de anotações explícitas. Porém, em cenários maiores e colaborativos, existem situações em que declarar os tipos manualmente melhora:
+
 - legibilidade;
 - manutenção;
 - documentação do código;
@@ -50,6 +71,7 @@ let estimatedCost = promptTokens * 0.002;
 ### Análise
 
 Passe o mouse sobre a variável `estimatedCost` no VS Code. Observe que:
+
 - o TypeScript identifica automaticamente o tipo;
 - nenhuma anotação explícita foi necessária;
 - o compilador inferiu o tipo como `number`.
@@ -66,6 +88,7 @@ let inferredScore = 10;
 ### Analise
 
 Observe que:
+
 - ambas possuem o mesmo comportamento;
 - o TypeScript infere automaticamente `number`;
 - a segunda versão é mais limpa e moderna.
@@ -83,6 +106,7 @@ Observe o erro exibido pelo compilador.
 ### Analise
 
 Perceba que:
+
 - o TypeScript “lembra” o tipo inferido;
 - inferência não significa ausência de tipagem;
 - o código continua sendo estaticamente tipado.
@@ -105,6 +129,7 @@ aiResponse = 404;
 ### Observe
 
 Perceba que:
+
 - o TypeScript não apresenta erro;
 - a variável foi inferida como `any`;
 - isso reduz a segurança do código.
@@ -122,6 +147,7 @@ aiResponse = 404;
 ### Observe o novo comportamento do compilador
 
 Analise:
+
 - o erro aparece imediatamente;
 - o contrato da variável ficou claro;
 - o código se torna mais previsível.
@@ -151,6 +177,7 @@ Copie seu código e envie para uma IA utilizando o prompt abaixo:
 > Atue como um especialista em TypeScript.
 >
 > Analise este código e responda:
+>
 > 1. Quais anotações de tipo são redundantes?
 > 2. Quais são importantes para documentação e manutenção?
 > 3. Existe algum risco de uso implícito de any?
@@ -159,6 +186,7 @@ Copie seu código e envie para uma IA utilizando o prompt abaixo:
 ## Reflexão
 
 Após analisar as sugestões da IA, reflita:
+
 - quais tipos poderiam ser removidos;
 - quais tipos deveriam permanecer;
 - como a inferência melhora a produtividade;
@@ -168,6 +196,7 @@ Após analisar as sugestões da IA, reflita:
 ## Resultado Esperado
 
 Ao final do laboratório, você deverá compreender que:
+
 - inferência de tipos não reduz a segurança;
 - o TypeScript continua sendo estaticamente tipado;
 - tipagem explícita deve ser usada estrategicamente;
@@ -177,6 +206,7 @@ Ao final do laboratório, você deverá compreender que:
 ## Competências Desenvolvidas
 
 Ao final deste laboratório, espera-se que o estudante seja capaz de:
+
 - compreender o funcionamento da inferência de tipos;
 - diferenciar inferência e tipagem explícita;
 - identificar situações de uso implícito de `any`;
