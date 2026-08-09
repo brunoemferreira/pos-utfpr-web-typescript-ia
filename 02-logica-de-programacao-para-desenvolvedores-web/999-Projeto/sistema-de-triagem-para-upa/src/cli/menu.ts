@@ -35,8 +35,7 @@ function clearConsole(): void {
  */
 function printHeader(): void {
   console.log('===========================================================');
-  console.log('    🏥 SISTEMA DE TRIAGEM E GERENCIAMENTO DA UPA');
-  console.log('       (TypeScript • Clean Architecture • Clean Code)');
+  console.log('      SISTEMA DE TRIAGEM E GERENCIAMENTO DA UPA');
   console.log('===========================================================');
 }
 
@@ -53,16 +52,16 @@ export async function startInteractiveMenu(): Promise<void> {
   while (running) {
     printHeader();
     console.log('\n[ MENU PRINCIPAL ]\n');
-    console.log(' 1. 📝 Cadastrar Novo Paciente');
-    console.log(' 2. ⚡ Classificar Risco & Reavaliar Paciente');
-    console.log(' 3. 🚨 Atender Próximo Paciente (Maior Prioridade)');
-    console.log(' 4. 📋 Consultar Fila de Atendimento Ordenada');
-    console.log(' 5. 🔍 Buscar / Pesquisar Pacientes');
-    console.log(' 6. ✏️  Atualizar Cadastro de Paciente');
-    console.log(' 7. 📊 Exibir Estatísticas do Atendimento');
-    console.log(' 8. 🔄 Recarregar Dados da API Externa');
-    console.log(' 9. 💾 Salvar Estado Atual no JSON da API');
-    console.log(' 0. ❌ Sair do Sistema');
+    console.log(' 1. Cadastrar Novo Paciente');
+    console.log(' 2. Classificar Risco & Reavaliar Paciente');
+    console.log(' 3. Atender Próximo Paciente (Maior Prioridade)');
+    console.log(' 4. Consultar Fila de Atendimento Ordenada');
+    console.log(' 5. Buscar / Pesquisar Pacientes');
+    console.log(' 6. Atualizar Cadastro de Paciente');
+    console.log(' 7. Exibir Estatísticas do Atendimento');
+    console.log(' 8. Recarregar Dados da API Externa');
+    console.log(' 9. Salvar Estado Atual no JSON da API');
+    console.log(' 0. Sair do Sistema');
     console.log('\n===========================================================');
 
     const option = await askQuestion('Escolha uma opção (0-9): ');
