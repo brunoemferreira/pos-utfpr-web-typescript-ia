@@ -10,6 +10,17 @@ export enum PriorityLevel {
 }
 
 /**
+ * Mapeamento visual das cores do Protocolo de Manchester com Emojis de Prioridade
+ */
+export const PRIORITY_EMOJI: Record<PriorityLevel, string> = {
+  [PriorityLevel.EMERGENCY]: '🔴 VERMELHO',
+  [PriorityLevel.VERY_URGENT]: '🟠 LARANJA',
+  [PriorityLevel.URGENT]: '🟡 AMARELO',
+  [PriorityLevel.STANDARD]: '🟢 VERDE',
+  [PriorityLevel.NON_URGENT]: '🔵 AZUL'
+};
+
+/**
  * Peso numérico para ordenação da fila (quanto menor o número, maior a prioridade)
  */
 export const PRIORITY_WEIGHT: Record<PriorityLevel, number> = {

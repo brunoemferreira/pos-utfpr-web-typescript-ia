@@ -1,20 +1,25 @@
-# 🏥 Sistema de Triagem e Gerenciamento de Atendimento para UPA
+# Sistema de Triagem e Gerenciamento de Atendimento para UPA
 
-Problema : 
+Sistema de Triagem para Unidade de Pronto Atendimento (UPA) desenvolvido em **TypeScript** e **Node.js**, sem interface gráfica (executado via terminal CLI), aplicando rigorosamente os princípios de **Código Limpo (Clean Code)** e **Arquitetura Limpa (Clean Architecture)**.
+
+---
+
+## Problema a Ser Resolvido
 Uma Unidade de Pronto Atendimento (UPA) realiza diariamente centenas de atendimentos. O processo de triagem precisa classificar pacientes conforme o grau de urgência, organizar a fila de atendimento, registrar alterações de prioridade e disponibilizar estatísticas para a equipe médica.
 
 ---
 
-## 🚀 Tecnologias e Recursos Utilizados
+## Tecnologias e Recursos Utilizados
 
 - **Linguagem**: TypeScript (v5.3+)
 - **Runtime**: Node.js (v20+)
 - **Pattern Matching**: `ts-pattern` (v5.6+)
 - **Test Runner**: Node.js Test Runner nativo (`node:test` e `node:assert`)
 - **Validação de Dados**: Expressões Regulares (Regex)
+
 ---
 
-## 📁 Estrutura do Projeto (Clean Architecture)
+## Estrutura do Projeto (Clean Architecture)
 
 ```text
 sistema-de-triagem-para-upa/
@@ -52,7 +57,7 @@ sistema-de-triagem-para-upa/
 
 ---
 
-## 📑 Mapeamento e Detalhamento dos 10 Requisitos
+## Mapeamento e Detalhamento dos 10 Requisitos
 
 ### **R01 — Cadastro e Gerenciamento de Pacientes**
 - **Objetivo do Requisito**: O sistema deve permitir o cadastro de pacientes contendo informações essenciais para o atendimento de urgência (nome, idade, sintomas, CPF, telefone, e-mail, data de chegada e prioridade de atendimento), além de disponibilizar operações para consultar e atualizar os dados cadastrados.
@@ -218,7 +223,7 @@ sistema-de-triagem-para-upa/
 
 ---
 
-## 🛠️ Instruções de Instalação e Execução
+## Instruções de Instalação e Execução
 
 ### **Pré-requisitos**
 - Node.js (versão 20.0.0 ou superior)
@@ -243,7 +248,7 @@ npm run dev
 
 ---
 
-## 🧪 Instruções para Execução dos Testes Automatizados
+## Instruções para Execução dos Testes Automatizados
 
 Os testes do sistema foram desenvolvidos com o test runner nativo do Node.js (`node:test`).
 
@@ -254,13 +259,13 @@ npm test
 
 ---
 
-## 📋 Exemplos de Uso do Sistema (Terminal CLI)
+## Exemplos de Uso do Sistema (Terminal CLI)
 
-Ao iniciar a aplicação (`npm start`), o menu interativo apresentará as seguintes opções:
+Ao iniciar a aplicação (`npm start`), o menu interativo apresentará o cabeçalho e as opções de navegabilidade:
 
 ```text
 ===========================================================
-    🏥 SISTEMA DE TRIAGEM E GERENCIAMENTO DA UPA
+      SISTEMA DE TRIAGEM E GERENCIAMENTO DA UPA
 ===========================================================
 
 [ MENU PRINCIPAL ]
@@ -279,12 +284,180 @@ Ao iniciar a aplicação (`npm start`), o menu interativo apresentará as seguin
 ===========================================================
 ```
 
-### **Exemplo 1: Cadastrar um Paciente e Classificar Risco Automático**
-1. Selecione a opção `1` (Cadastrar Novo Paciente).
-2. Informe Nome: `Maria da Silva`, Idade: `45`, CPF: `529.982.247-25`, Telefone: `(41) 99999-8888`, E-mail: `maria@email.com`, Sintomas: `Forte dor no peito e falta de ar severa`.
-3. O sistema validará todos os campos via Regex e acionará o motor `ts-pattern`, identificando a palavra-chave *"dor no peito"* e atribuindo automaticamente a prioridade **🔴 LARANJA (Muito Urgente)**.
+Abaixo estão os exemplos detalhados de interação para cada uma das opções disponíveis:
 
-### **Exemplo 2: Atendimento por Prioridade Estrita (Protocolo de Manchester)**
-1. Com dois pacientes na fila (João - Verde / Pouco Urgente cadastrado às 14:00 e Maria - Laranja / Muito Urgente cadastrada às 14:15).
-2. Selecione a opção `3` (Atender Próximo Paciente).
-3. O sistema chamará **Maria da Silva** primeiro, pois o grau de urgência Laranja possui peso 2 (maior prioridade que Verde, peso 4), respeitando as regras médicas da UPA.
+---
+
+### **Opção 1 — Cadastrar Novo Paciente**
+- **Objetivo**: Efetuar o cadastro completo de um novo paciente que deu entrada na UPA.
+- **Interação no Terminal**:
+  ```text
+  --- CADASTRO DE NOVO PACIENTE ---
+  Nome Completo: Maria da Silva
+  Idade: 45
+  CPF (000.000.000-00 ou 11 dígitos): 529.982.247-25
+  Telefone ((XX) XXXXX-XXXX): (41) 99999-8888
+  E-mail (usuario@dominio.com): maria@email.com
+  Sintomas informados / Queixa principal: Forte dor no peito e falta de ar severa
+
+  [SUCESSO] Paciente cadastrado e classificado com sucesso!
+     ID: PAC-0004
+     Nome: Maria da Silva
+     Prioridade Atribuída: 🟠 LARANJA - Muito Urgente: Atendimento em até 10 minutos
+  ```
+- **Resultado**: O sistema executa as validações Regex de formato e checksum do CPF, aciona o motor `ts-pattern` que reconhece a expressão *"dor no peito"*, classifica o paciente como **🟠 LARANJA** e o insere na fila.
+
+---
+
+### **Opção 2 — Classificar Risco & Reavaliar Paciente**
+- **Objetivo**: Atualizar os sintomas de um paciente ou atribuir manualmente uma nova cor de triagem médica.
+- **Interação no Terminal**:
+  ```text
+  --- CLASSIFICAÇÃO DE RISCO & REAVALIAÇÃO ---
+  Informe o ID ou CPF do paciente: PAC-0004
+
+  Paciente encontrado: Maria da Silva (Prioridade Atual: LARANJA)
+  Novos sintomas (deixe em branco para manter): Parada cardiorrespiratoria e perda de consciência
+
+  Selecione uma prioridade explícita ou pressione Enter para classificação automática:
+   1. 🔴 VERMELHO (Emergência)
+   2. 🟠 LARANJA (Muito Urgente)
+   3. 🟡 AMARELO (Urgente)
+   4. 🟢 VERDE (Pouco Urgente)
+   5. 🔵 AZUL (Não Urgente)
+  Opção (1-5 ou Enter para automático): 
+
+  [SUCESSO] Paciente reavaliado com sucesso!
+     Nova Prioridade: 🔴 VERMELHO - Emergência: Atendimento imediato (0 min)
+  ```
+- **Resultado**: O motor `ts-pattern` reclassifica os novos sintomas informados (*"parada cardiorrespiratoria"*) e promove a paciente para a prioridade **🔴 VERMELHO**, movendo-a imediatamente para a primeira posição da fila.
+
+---
+
+### **Opção 3 — Atender Próximo Paciente (Maior Prioridade)**
+- **Objetivo**: Chamar o paciente com o maior grau de urgência clínica na UPA.
+- **Interação no Terminal**:
+  ```text
+  --- CHAMADA DE ATENDIMENTO ---
+
+  [CHAMADA DE PACIENTE]
+     Paciente Maria da Silva (VERMELHO) chamado para atendimento!
+     ID: PAC-0004
+     CPF: 529.982.247-25
+     Sintomas: Parada cardiorrespiratoria e perda de consciência
+     Data de Chegada: 08/08/2026 22:15:00
+  ```
+- **Resultado**: O `QueueService` consome o paciente no topo da fila priorizada, altera o status para `atendido: true`, registra o horário do atendimento e remove o paciente das chamadas pendentes.
+
+---
+
+### **Opção 4 — Consultar Fila de Atendimento Ordenada**
+- **Objetivo**: Exibir a listagem completa da fila de pacientes aguardando atendimento.
+- **Interação no Terminal**:
+  ```text
+  --- FILA DE TRIAGEM DE ATENDIMENTO ORDENADA ---
+
+  Total aguardando atendimento: 2 paciente(s)
+
+   #1 | [AMARELO] Sebastião Ferreira (68 anos)
+        ID: PAC-0001 | CPF: 529.982.247-25
+        Sintomas: Febre alta e vômito
+        Chegada: 20:00:00
+
+   #2 | [VERDE] Juliana Oliveira (24 anos)
+        ID: PAC-0002 | CPF: 111.444.777-35
+        Sintomas: Febre baixa e dor de cabeça
+        Chegada: 20:15:00
+  ```
+- **Resultado**: Apresenta a fila ordenada prioritariamente pela gravidade médica do Protocolo de Manchester (🔴 Vermelho > 🟠 Laranja > 🟡 Amarelo > 🟢 Verde > 🔵 Azul) e secundariamente por ordem de chegada (FIFO).
+
+---
+
+### **Opção 5 — Buscar / Pesquisar Pacientes**
+- **Objetivo**: Localizar pacientes por fragmentos de texto (nome, CPF, sintomas) ou filtrar por cor de prioridade.
+- **Interação no Terminal**:
+  ```text
+  --- BUSCA DE PACIENTES ---
+  1. Pesquisar por Nome, CPF ou Sintomas
+  2. Filtrar por Nível de Prioridade (Cor)
+  Opção (1-2): 1
+  Digite o termo de busca: Juliana
+
+  Resultados encontrados: 1
+
+   • [PAC-0002] Juliana Oliveira - Prioridade: VERDE | Status: AGUARDANDO
+  ```
+- **Resultado**: O `StatsService` aplica os métodos `filter()` e `some()`, retornando todos os registros correspondentes ao critério digitado.
+
+---
+
+### **Opção 6 — Atualizar Cadastro de Paciente**
+- **Objetivo**: Alterar dados de contato (telefone ou e-mail) de um paciente cadastrado.
+- **Interação no Terminal**:
+  ```text
+  --- ATUALIZAR CADASTRO DE PACIENTE ---
+  Informe o ID ou CPF do paciente: PAC-0002
+
+  Atualizando paciente: Juliana Oliveira
+  Novo Telefone (Atual: (41) 99111-3344) [Enter para manter]: (41) 98888-5555
+  Novo E-mail (Atual: juliana@email.com) [Enter para manter]: juliana.nova@email.com
+
+  [SUCESSO] Cadastro atualizado com sucesso!
+  ```
+- **Resultado**: Aplica o Utility Type `Partial<Patient>` (RA02) atualizando apenas os atributos fornecidos, preservando os demais dados cadastrais intactos.
+
+---
+
+### **Opção 7 — Exibir Estatísticas do Atendimento**
+- **Objetivo**: Gerar o relatório consolidado com os indicadores operacionais da UPA.
+- **Interação no Terminal**:
+  ```text
+  --- ESTATÍSTICAS E RELATÓRIO DA UPA ---
+
+   Total de Pacientes Registrados : 3
+   Pacientes Atendidos          : 1
+   Pacientes Aguardando         : 2
+   Idade Média dos Pacientes    : 45.7 anos
+
+   Contagem por Cor de Prioridade:
+     VERMELHO: 1 paciente(s) | LARANJA: 0 paciente(s) | AMARELO: 1 paciente(s) | VERDE: 1 paciente(s) | AZUL: 0 paciente(s)
+  ```
+- **Resultado**: Computa em tempo real a idade média (usando `reduce`), o quantitativo por status e a distribuição por prioridade (`PriorityCountRecord`).
+
+---
+
+### **Opção 8 — Recarregar Dados da API Externa**
+- **Objetivo**: Simular a leitura assíncrona de prontuários médicos a partir de um servidor externo JSON.
+- **Interação no Terminal**:
+  ```text
+  --- SIMULAÇÃO DE API EXTERNA (CARGA ASSÍNCRONA) ---
+  Efetuando requisição assíncrona HTTP simulada com Promises...
+
+  [SUCESSO] 3 paciente(s) carregados da API externa.
+  ```
+- **Resultado**: Dispara a função assíncrona `loadAndSyncExternalData()`, simulando latência de rede com Promises e restaurando a base de dados a partir de `data/initial_patients.json`.
+
+---
+
+### **Opção 9 — Salvar Estado Atual no JSON da API**
+- **Objetivo**: Persistir o estado atual dos pacientes cadastrados e atendidos no arquivo JSON de dados.
+- **Interação no Terminal**:
+  ```text
+  --- SALVAR ESTADO NA API EXTERNA (PERSISTÊNCIA JSON) ---
+  Enviando dados assincronamente...
+
+  [SUCESSO] Estado salvo com sucesso! 3 registro(s) sincronizados em JSON.
+  ```
+- **Resultado**: Executa `syncPatientsToExternalApi()`, serializando a lista com `JSON.stringify()` e gravando no arquivo em disco via `fs/promises`.
+
+---
+
+### **Opção 0 — Sair do Sistema**
+- **Objetivo**: Finalizar a execução da aplicação terminal.
+- **Interação no Terminal**:
+  ```text
+  Escolha uma opção (0-9): 0
+
+  Encerrando o Sistema de Triagem da UPA. Até logo!
+  ```
+- **Resultado**: Encerra a interface `readline` e devolve o controle ao terminal.

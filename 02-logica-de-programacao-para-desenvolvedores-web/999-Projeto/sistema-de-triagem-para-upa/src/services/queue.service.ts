@@ -1,5 +1,5 @@
 import { Patient } from '../domain/entities/patient.entity.js';
-import { PRIORITY_WEIGHT } from '../domain/enums/priority-level.enum.js';
+import { PRIORITY_WEIGHT, PRIORITY_EMOJI } from '../domain/enums/priority-level.enum.js';
 import { getAllPatients, markPatientAsServed } from './patient.service.js';
 
 /**
@@ -59,10 +59,12 @@ export function attendNextPatient(): { success: boolean; patient?: Patient; mess
     };
   }
 
+  const emojiPriority = PRIORITY_EMOJI[servedPatient.prioridade] || servedPatient.prioridade;
+
   return {
     success: true,
     patient: servedPatient,
-    message: `Paciente ${servedPatient.nome} (${servedPatient.prioridade}) chamado para atendimento!`
+    message: `Paciente ${servedPatient.nome} (${emojiPriority}) chamado para atendimento!`
   };
 }
 

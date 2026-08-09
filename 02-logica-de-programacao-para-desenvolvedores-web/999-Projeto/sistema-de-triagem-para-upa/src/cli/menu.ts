@@ -1,5 +1,5 @@
 import readline from 'readline';
-import { PriorityLevel } from '../domain/enums/priority-level.enum.js';
+import { PriorityLevel, PRIORITY_EMOJI } from '../domain/enums/priority-level.enum.js';
 import { PatientRegistrationDTO, PatientUpdateDTO } from '../domain/types/utility-types.js';
 import { registerPatient, updatePatient, findPatientByIdOrCpf, getAllPatients } from '../services/patient.service.js';
 import { getTriageQueue, attendNextPatient } from '../services/queue.service.js';
@@ -46,7 +46,7 @@ export async function startInteractiveMenu(): Promise<void> {
   let running = true;
 
   // Carrega inicialmente os dados da API simulada
-  console.log('🔄 Inicializando sistema e carregando dados externos...');
+  console.log('Inicializando sistema e carregando dados externos...');
   await loadAndSyncExternalData(200);
 
   while (running) {
@@ -100,7 +100,7 @@ export async function startInteractiveMenu(): Promise<void> {
         rl.close();
         break;
       default:
-        console.log('\n⚠️  Opção inválida! Pressione Enter para tentar novamente.');
+        console.log('\nOpção inválida! Pressione Enter para tentar novamente.');
         await askQuestion('');
         break;
     }
@@ -111,7 +111,7 @@ export async function startInteractiveMenu(): Promise<void> {
  * 1. Cadastrar Novo Paciente
  */
 async function handleRegisterPatient(): Promise<void> {
-  console.log('\n--- 📝 CADASTRO DE NOVO PACIENTE ---');
+  console.log('\n--- CADASTRO DE NOVO PACIENTE ---');
 
   const nome = await askQuestion('Nome Completo: ');
   const idadeStr = await askQuestion('Idade: ');
@@ -132,12 +132,12 @@ async function handleRegisterPatient(): Promise<void> {
   const result = registerPatient(dto);
 
   if (result.success && result.patient) {
-    console.log('\n✅ Paciente cadastrado e classificado com sucesso!');
+    console.log('\n[SUCESSO] Paciente cadastrado e classificado com sucesso!');
     console.log(`   ID: ${result.patient.id}`);
     console.log(`   Nome: ${result.patient.nome}`);
     console.log(`   Prioridade Atribuída: ${getPriorityDescription(result.patient.prioridade)}`);
   } else {
-    console.log('\n❌ Falha no cadastro! Erros encontrados:');
+    console.log('\n[ERRO] Falha no cadastro! Erros encontrados:');
     result.errors?.forEach(err => console.log(`   - ${err}`));
   }
 
@@ -148,26 +148,27 @@ async function handleRegisterPatient(): Promise<void> {
  * 2. Classificar Risco & Reavaliar
  */
 async function handleReclassifyPatient(): Promise<void> {
-  console.log('\n--- ⚡ CLASSIFICAÇÃO DE RISCO & REAVALIAÇÃO ---');
+  console.log('\n--- CLASSIFICAÇÃO DE RISCO & REAVALIAÇÃO ---');
 
   const term = await askQuestion('Informe o ID ou CPF do paciente: ');
   const patient = findPatientByIdOrCpf(term);
 
   if (!patient) {
-    console.log('\n❌ Paciente não encontrado.');
+    console.log('\n[ERRO] Paciente não encontrado.');
     await askQuestion('\nPressione Enter para continuar...');
     return;
   }
 
-  console.log(`\nPaciente encontrado: ${patient.nome} (Prioridade Atual: ${patient.prioridade})`);
+  const currentPriorityLabel = PRIORITY_EMOJI[patient.prioridade] || patient.prioridade;
+  console.log(`\nPaciente encontrado: ${patient.nome} (Prioridade Atual: ${currentPriorityLabel})`);
   const novosSintomas = await askQuestion('Novos sintomas (deixe em branco para manter): ');
 
-  console.log('\nSelecione uma prioridade explícita ou pressione Enter para classificação automática :');
-  console.log(' 1. VERMELHO (Emergência)');
-  console.log(' 2. LARANJA (Muito Urgente)');
-  console.log(' 3. AMARELO (Urgente)');
-  console.log(' 4. VERDE (Pouco Urgente)');
-  console.log(' 5. AZUL (Não Urgente)');
+  console.log('\nSelecione uma prioridade explícita ou pressione Enter para classificação automática:');
+  console.log(' 1. 🔴 VERMELHO (Emergência)');
+  console.log(' 2. 🟠 LARANJA (Muito Urgente)');
+  console.log(' 3. 🟡 AMARELO (Urgente)');
+  console.log(' 4. 🟢 VERDE (Pouco Urgente)');
+  console.log(' 5. 🔵 AZUL (Não Urgente)');
   const corChoice = await askQuestion('Opção (1-5 ou Enter para automático): ');
 
   let explicitPriority: PriorityLevel | undefined;
@@ -184,10 +185,10 @@ async function handleReclassifyPatient(): Promise<void> {
   const result = updatePatient(patient.id, updates);
 
   if (result.success && result.patient) {
-    console.log('\n✅ Paciente reavaliado com sucesso!');
+    console.log('\n[SUCESSO] Paciente reavaliado com sucesso!');
     console.log(`   Nova Prioridade: ${getPriorityDescription(result.patient.prioridade)}`);
   } else {
-    console.log('\n❌ Falha ao atualizar:');
+    console.log('\n[ERRO] Falha ao atualizar:');
     result.errors?.forEach(err => console.log(`   - ${err}`));
   }
 
@@ -198,19 +199,19 @@ async function handleReclassifyPatient(): Promise<void> {
  * 3. Atender Próximo Paciente
  */
 async function handleAttendNext(): Promise<void> {
-  console.log('\n--- 🚨 CHAMADA DE ATENDIMENTO ---');
+  console.log('\n--- CHAMADA DE ATENDIMENTO ---');
 
   const result = attendNextPatient();
 
   if (result.success && result.patient) {
-    console.log('\n🔊 [CHAMADA DE PACIENTE]');
+    console.log('\n[CHAMADA DE PACIENTE]');
     console.log(`   ${result.message}`);
     console.log(`   ID: ${result.patient.id}`);
     console.log(`   CPF: ${result.patient.cpf}`);
     console.log(`   Sintomas: ${result.patient.sintomas}`);
     console.log(`   Data de Chegada: ${result.patient.dataDeChegada.toLocaleString()}`);
   } else {
-    console.log(`\nℹ️  ${result.message}`);
+    console.log(`\n[INFO] ${result.message}`);
   }
 
   await askQuestion('\nPressione Enter para continuar...');
@@ -220,16 +221,17 @@ async function handleAttendNext(): Promise<void> {
  * 4. Consultar Fila de Atendimento
  */
 async function handleShowQueue(): Promise<void> {
-  console.log('\n--- 📋 FILA DE TRIAGEM DE ATENDIMENTO ORDENADA ---');
+  console.log('\n--- FILA DE TRIAGEM DE ATENDIMENTO ORDENADA ---');
 
   const queue = getTriageQueue();
 
   if (queue.length === 0) {
-    console.log('\n🎉 Fila vazia! Nenhum paciente aguardando no momento.');
+    console.log('\nFila vazia! Nenhum paciente aguardando no momento.');
   } else {
     console.log(`\nTotal aguardando atendimento: ${queue.length} paciente(s)\n`);
     queue.forEach((patient, index) => {
-      console.log(` #${index + 1} | [${patient.prioridade}] ${patient.nome} (${patient.idade} anos)`);
+      const priorityLabel = PRIORITY_EMOJI[patient.prioridade] || patient.prioridade;
+      console.log(` #${index + 1} | [${priorityLabel}] ${patient.nome} (${patient.idade} anos)`);
       console.log(`      ID: ${patient.id} | CPF: ${patient.cpf}`);
       console.log(`      Sintomas: ${patient.sintomas}`);
       console.log(`      Chegada: ${new Date(patient.dataDeChegada).toLocaleTimeString()}\n`);
@@ -243,7 +245,7 @@ async function handleShowQueue(): Promise<void> {
  * 5. Buscar / Pesquisar Pacientes
  */
 async function handleSearchPatients(): Promise<void> {
-  console.log('\n--- 🔍 BUSCA DE PACIENTES ---');
+  console.log('\n--- BUSCA DE PACIENTES ---');
   console.log('1. Pesquisar por Nome, CPF ou Sintomas');
   console.log('2. Filtrar por Nível de Prioridade (Cor)');
   const opt = await askQuestion('Opção (1-2): ');
@@ -254,10 +256,11 @@ async function handleSearchPatients(): Promise<void> {
 
     console.log(`\nResultados encontrados: ${results.length}\n`);
     results.forEach(p => {
-      console.log(` • [${p.id}] ${p.nome} - Prioridade: ${p.prioridade} | Status: ${p.atendido ? 'ATENDIDO' : 'AGUARDANDO'}`);
+      const priorityLabel = PRIORITY_EMOJI[p.prioridade] || p.prioridade;
+      console.log(` • [${p.id}] ${p.nome} - Prioridade: ${priorityLabel} | Status: ${p.atendido ? 'ATENDIDO' : 'AGUARDANDO'}`);
     });
   } else if (opt.trim() === '2') {
-    console.log('Cores: 1. VERMELHO | 2. LARANJA | 3. AMARELO | 4. VERDE | 5. AZUL');
+    console.log('Cores: 1. 🔴 VERMELHO | 2. 🟠 LARANJA | 3. 🟡 AMARELO | 4. 🟢 VERDE | 5. 🔵 AZUL');
     const colorOpt = await askQuestion('Escolha a cor (1-5): ');
     let selectedPriority: PriorityLevel = PriorityLevel.STANDARD;
 
@@ -268,8 +271,11 @@ async function handleSearchPatients(): Promise<void> {
     if (colorOpt.trim() === '5') selectedPriority = PriorityLevel.NON_URGENT;
 
     const results = listPatientsByPriority(selectedPriority);
-    console.log(`\nPacientes na cor ${selectedPriority}: ${results.length}\n`);
-    results.forEach(p => console.log(` • [${p.id}] ${p.nome} (${p.idade} anos) - Status: ${p.atendido ? 'ATENDIDO' : 'AGUARDANDO'}`));
+    const selectedLabel = PRIORITY_EMOJI[selectedPriority] || selectedPriority;
+    console.log(`\nPacientes na cor ${selectedLabel}: ${results.length}\n`);
+    results.forEach(p => {
+      console.log(` • [${p.id}] ${p.nome} (${p.idade} anos) - Status: ${p.atendido ? 'ATENDIDO' : 'AGUARDANDO'}`);
+    });
   }
 
   await askQuestion('\nPressione Enter para continuar...');
@@ -279,13 +285,13 @@ async function handleSearchPatients(): Promise<void> {
  * 6. Atualizar Cadastro de Paciente
  */
 async function handleUpdatePatient(): Promise<void> {
-  console.log('\n--- ✏️ ATUALIZAR CADASTRO DE PACIENTE ---');
+  console.log('\n--- ATUALIZAR CADASTRO DE PACIENTE ---');
 
   const term = await askQuestion('Informe o ID ou CPF do paciente: ');
   const patient = findPatientByIdOrCpf(term);
 
   if (!patient) {
-    console.log('\n❌ Paciente não encontrado.');
+    console.log('\n[ERRO] Paciente não encontrado.');
     await askQuestion('\nPressione Enter para continuar...');
     return;
   }
@@ -301,9 +307,9 @@ async function handleUpdatePatient(): Promise<void> {
   const result = updatePatient(patient.id, updates);
 
   if (result.success) {
-    console.log('\n✅ Cadastro atualizado com sucesso!');
+    console.log('\n[SUCESSO] Cadastro atualizado com sucesso!');
   } else {
-    console.log('\n❌ Erro ao atualizar:');
+    console.log('\n[ERRO] Erro ao atualizar:');
     result.errors?.forEach(err => console.log(`   - ${err}`));
   }
 
@@ -314,7 +320,7 @@ async function handleUpdatePatient(): Promise<void> {
  * 7. Exibir Estatísticas do Atendimento
  */
 async function handleShowStatistics(): Promise<void> {
-  console.log('\n--- 📊 ESTATÍSTICAS E RELATÓRIO DA UPA ---');
+  console.log('\n--- ESTATÍSTICAS E RELATÓRIO DA UPA ---');
 
   const stats = calculateTriageStatistics();
 
@@ -332,15 +338,15 @@ async function handleShowStatistics(): Promise<void> {
  * 8. Carregar Dados da API Externa
  */
 async function handleLoadExternalData(): Promise<void> {
-  console.log('\n--- 🔄 SIMULAÇÃO DE API EXTERNA (CARGA ASSÍNCRONA) ---');
+  console.log('\n--- SIMULAÇÃO DE API EXTERNA (CARGA ASSÍNCRONA) ---');
   console.log('Efetuando requisição assíncrona HTTP simulada com Promises...');
 
   const result = await loadAndSyncExternalData(500);
 
   if (result.success) {
-    console.log(`\n✅ Sucesso! ${result.count} paciente(s) carregados da API externa.`);
+    console.log(`\n[SUCESSO] ${result.count} paciente(s) carregados da API externa.`);
   } else {
-    console.log('\n❌ Falha ao carregar dados da API externa.');
+    console.log('\n[ERRO] Falha ao carregar dados da API externa.');
   }
 
   await askQuestion('\nPressione Enter para continuar...');
@@ -350,15 +356,15 @@ async function handleLoadExternalData(): Promise<void> {
  * 9. Salvar Estado na API Externa
  */
 async function handleSaveExternalData(): Promise<void> {
-  console.log('\n--- 💾 SALVAR ESTADO NA API EXTERNA (PERSISTÊNCIA JSON) ---');
+  console.log('\n--- SALVAR ESTADO NA API EXTERNA (PERSISTÊNCIA JSON) ---');
   console.log('Enviando dados assincronamente...');
 
   const result = await syncPatientsToExternalApi(500);
 
   if (result.success) {
-    console.log(`\n✅ Estado salvo com sucesso! ${result.count} registro(s) sincronizados em JSON.`);
+    console.log(`\n[SUCESSO] Estado salvo com sucesso! ${result.count} registro(s) sincronizados em JSON.`);
   } else {
-    console.log('\n❌ Falha ao salvar estado na API.');
+    console.log('\n[ERRO] Falha ao salvar estado na API.');
   }
 
   await askQuestion('\nPressione Enter para continuar...');

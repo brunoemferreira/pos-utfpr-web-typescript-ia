@@ -1,5 +1,5 @@
 import { Patient } from '../domain/entities/patient.entity.js';
-import { PriorityLevel } from '../domain/enums/priority-level.enum.js';
+import { PriorityLevel, PRIORITY_EMOJI } from '../domain/enums/priority-level.enum.js';
 import { PriorityCountRecord, ReadonlyPatient } from '../domain/types/utility-types.js';
 import { getAllPatients } from './patient.service.js';
 
@@ -89,7 +89,10 @@ export function calculateTriageStatistics(): TriageStatistics {
 
   // Formatação amigável das contagens por prioridade utilizando map() e join()
   const resumoPrioridadesFormatado = Object.entries(contagemPorPrioridade)
-    .map(([cor, qtd]) => `${cor}: ${qtd} paciente(s)`)
+    .map(([cor, qtd]) => {
+      const emojiCor = PRIORITY_EMOJI[cor as PriorityLevel] || cor;
+      return `${emojiCor}: ${qtd} paciente(s)`;
+    })
     .join(' | ');
 
   return {
