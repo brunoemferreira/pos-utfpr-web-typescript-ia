@@ -1,6 +1,7 @@
 # 🏥 Sistema de Triagem e Gerenciamento de Atendimento para UPA
 
-Sistema de Triagem para Unidade de Pronto Atendimento (UPA) desenvolvido em **TypeScript** e **Node.js**, sem interface gráfica (via terminal CLI), aplicando os princípios de **Código Limpo (Clean Code)** e **Arquitetura Limpa (Clean Architecture)**.
+Problema : 
+Uma Unidade de Pronto Atendimento (UPA) realiza diariamente centenas de atendimentos. O processo de triagem precisa classificar pacientes conforme o grau de urgência, organizar a fila de atendimento, registrar alterações de prioridade e disponibilizar estatísticas para a equipe médica.
 
 ---
 
@@ -10,10 +11,7 @@ Sistema de Triagem para Unidade de Pronto Atendimento (UPA) desenvolvido em **Ty
 - **Runtime**: Node.js (v20+)
 - **Pattern Matching**: `ts-pattern` (v5.6+)
 - **Test Runner**: Node.js Test Runner nativo (`node:test` e `node:assert`)
-- **Executor TypeScript**: `tsx`
 - **Validação de Dados**: Expressões Regulares (Regex)
-- **Modelagem Tipada**: Interfaces, Type Aliases e Utility Types (`Partial`, `Pick`, `Omit`, `Readonly`, `Record`)
-
 ---
 
 ## 📁 Estrutura do Projeto (Clean Architecture)
@@ -54,61 +52,169 @@ sistema-de-triagem-para-upa/
 
 ---
 
-## 📑 Mapeamento e Detalhamento dos Requisitos
+## 📑 Mapeamento e Detalhamento dos 10 Requisitos
 
 ### **R01 — Cadastro e Gerenciamento de Pacientes**
-- **Implementação**: O serviço `PatientService` centraliza as operações de criação, consulta e atualização dos pacientes.
-- **Campos**: Nome, Idade, Sintomas, CPF, Telefone, E-mail, Data de Chegada (`Timestamp`) e Grau de Prioridade de Atendimento.
-- **Decisão Técnica**: O cadastro armazena o histórico do paciente mantendo imutabilidade via cópias profundas e gera IDs únicos baseados no timestamp e índice.
+- **Objetivo do Requisito**: O sistema deve permitir o cadastro de pacientes contendo informações essenciais para o atendimento de urgência (nome, idade, sintomas, CPF, telefone, e-mail, data de chegada e prioridade de atendimento), além de disponibilizar operações para consultar e atualizar os dados cadastrados.
+- **Como foi Implementado**:
+  - Implementado no módulo `src/services/patient.service.ts`.
+  - Criadas as funções `registerPatient()`, `updatePatient()`, `findPatientByIdOrCpf()`, `getAllPatients()` e `markPatientAsServed()`.
+  - O cadastro recebe os dados de entrada via DTO, realiza a validação por Regex, classifica o risco automaticamente com base nos sintomas e gera um identificador único sequencial (ex.: `PAC-0001`).
+- **Decisões Técnicas e Arquiteturais**:
+  1. *Encapsulamento do Estado*: O armazenamento de pacientes fica restrito à variável `patientStore` dentro do módulo de serviço, impedindo acessos globais descontrolados.
+  2. *Prevenção de Duplicidade*: Implementada checagem estrita de CPF normalizado (apenas números) para evitar que um paciente seja cadastrado duplicadamente em aberto.
+  3. *Preservação de Imutabilidade*: As funções de busca e listagem retornam cópias superficiais (`{ ...patient }`) tipadas como `ReadonlyPatient`, garantindo que modificações externas não alterem o repositório por efeito colateral.
 
-### **R02 — Organização das Funcionalidades do Sistema**
-- **Implementação**: Código estritamente modularizado em camadas de responsabilidade única (Domínio, Serviços de Negócio, Validações, Infraestrutura e CLI).
-- **Decisão Técnica**: Uso de funções puras e exportações nomeadas para facilitar reutilização, testes isolados e baixo acoplamento.
+---
+
+### **R02 — Organização das Funcionalidades do Sistema (Clean Architecture & Modularização)**
+- **Objetivo do Requisito**: O sistema deve ser estruturado em módulos independentes e funções reutilizáveis, separando claramente as responsabilidades de domínio, validação, regras de negócio, infraestrutura e apresentação.
+- **Como foi Implementado**:
+  - Organização rigorosa em camadas dentro do diretório `src/`:
+    - `domain/`: Contém os contratos do modelo (`patient.entity.ts`), enums de prioridade e os tipos utilitários. Esta camada é 100% pura e independente de qualquer biblioteca externa ou I/O.
+    - `validators/`: Contém funções puras dedicadas exclusivamente à validação de formato de dados (`patient.validator.ts`).
+    - `services/`: Encapsula a lógica de negócio (classificação de risco, gestão de fila, CRUD de pacientes e geração de estatísticas).
+    - `infrastructure/`: Abstrai a comunicação assíncrona e persistência em arquivo JSON (`api-simulator.service.ts`).
+    - `cli/`: Cuida unicamente da interação com o usuário via terminal (`menu.ts`).
+- **Decisões Técnicas e Arquiteturais**:
+  1. *Princípio da Responsabilidade Única (SRP - SOLID)*: Cada arquivo possui uma única razão para existir e mudar. Se a regra de validação de CPF mudar, altera-se apenas o validador; se o meio de persistência mudar, altera-se apenas o serviço de infraestrutura.
+  2. *Baixo Acoplamento e Reutilização*: Funções puras exportadas individualmente via named exports (`export function ...`), permitindo que a suíte de testes consuma diretamente a lógica de negócio sem depender da interface do terminal.
+
+---
 
 ### **R03 — Classificação e Gerenciamento da Fila de Atendimento**
-- **Implementação**: O `QueueService` gerencia a fila de pacientes utilizando uma estrutura de prioridade estrita baseada no Protocolo de Manchester:
-  1. **Vermelho** (Emergência - Atendimento Imediato)
-  2. **Laranja** (Muito Urgente - Atendimento em até 10 min)
-  3. **Amarelo** (Urgente - Atendimento em até 60 min)
-  4. **Verde** (Pouco Urgente - Atendimento em até 120 min)
-  5. **Azul** (Não Urgente - Atendimento em até 240 min)
-- **Ordenação**: Pacientes com a mesma prioridade são atendidos em ordem de chegada (*FIFO* por timestamp).
+- **Objetivo do Requisito**: O sistema deve aplicar regras de negócio para classificar o paciente conforme a gravidade do seu estado clínico, mantendo uma fila de atendimento ordenada rigorosamente por prioridade e tempo de espera.
+- **Como foi Implementado**:
+  - Desenvolvido em `src/services/queue.service.ts` e `src/services/classification.service.ts`.
+  - A classificação fundamenta-se nas cinco cores do **Protocolo de Manchester**:
+    1. **🔴 VERMELHO (Emergência)**: Atendimento imediato (0 min). Peso 1.
+    2. **🟠 LARANJA (Muito Urgente)**: Atendimento em até 10 min. Peso 2.
+    3. **🟡 AMARELO (Urgente)**: Atendimento em até 60 min. Peso 3.
+    4. **🟢 VERDE (Pouco Urgente)**: Atendimento em até 120 min. Peso 4.
+    5. **🔵 AZUL (Não Urgente)**: Atendimento em até 240 min. Peso 5.
+- **Decisões Técnicas e Arquiteturais**:
+  1. *Algoritmo de Ordenação Estável (Priority Queue + FIFO)*: A função `getTriageQueue()` filtra os pacientes pendentes (`atendido === false`) e executa a ordenação combinando dois critérios:
+     - **Critério Primário**: Compara os pesos numéricos das prioridades (`PRIORITY_WEIGHT[a.prioridade] - PRIORITY_WEIGHT[b.prioridade]`).
+     - **Critério Secundário (Desempate FIFO)**: Quando dois pacientes possuem a mesma cor de prioridade, o desempate é feito pelo timestamp da data de chegada (`dataDeChegada.getTime()`).
+  2. *Controle de Fluxo de Chamada*: A função `attendNextPatient()` consome o paciente no topo da fila ordenada, atualizando atomicamente os campos `atendido = true` e `dataAtendimento = new Date()`.
+
+---
 
 ### **R04 — Consulta, Busca e Geração de Estatísticas**
-- **Implementação**: O `StatsService` disponibiliza relatórios agregados:
-  - Listagem de pacientes por nível de prioridade.
-  - Busca de pacientes por CPF, nome ou ID.
-  - Estatísticas de atendimento: quantidade total de pacientes, distribuição por cor/prioridade (usando `reduce`), idade média e tempo médio de espera.
+- **Objetivo do Requisito**: Disponibilizar operações de análise dos dados dos pacientes, incluindo listagens por prioridade, localização de pacientes específicos por termos e geração de relatórios consolidados sobre a UPA.
+- **Como foi Implementado**:
+  - Implementado em `src/services/stats.service.ts`.
+  - Aplicação prática e intensiva dos métodos avançados de Array do JavaScript/TypeScript (`map`, `filter`, `find`, `some`, `reduce`, `join`).
+- **Decisões Técnicas e Arquiteturais**:
+  1. *Filtros de Prioridade (`filter` e `map`)*: `listPatientsByPriority()` extrai instantaneamente todos os pacientes de um determinado grau de urgência.
+  2. *Busca Multicritério (`filter` com `some`)*: `searchPatients()` aceita qualquer fragmento de texto e pesquisa de forma insensível a maiúsculas/minúsculas em nome, CPF (normalizado), sintomas e e-mail.
+  3. *Consolidação com `reduce`*: A função `calculateTriageStatistics()` varre a coleção em uma única passagem para calcular:
+     - Idade média dos pacientes: `reduce((soma, p) => soma + p.idade, 0) / total`.
+     - Contagem agrupada por cor utilizando o Utility Type `Record<PriorityLevel, number>`.
+     - Síntese formatada utilizando `Object.entries().map().join(' | ')`.
 
-### **R05 — Modelagem das Entidades do Sistema**
-- **Implementação**: Interfaces estritas em `src/domain/entities/patient.entity.ts` e enum `PriorityLevel`.
-- **Decisão Técnica**: Tipagem estrita de todos os atributos para eliminar inconsistências de dados e erros de runtime em potencial.
+---
 
-### **R06 — Simulação de Comunicação com uma API**
-- **Implementação**: O `ApiSimulatorService` lê e escreve arquivos JSON em `data/initial_patients.json` através de `fs/promises`, simulando atrasos de rede assíncronos (`setTimeout` envelopado em `Promise`).
-- **Decisão Técnica**: Permite carregar uma base inicial de pacientes para testes e salvar o estado do atendimento sem depender de um banco de dados externo.
+### **R05 — Modelagem das Entidades do Sistema (Domain Entities & Enums)**
+- **Objetivo do Requisito**: Representar com precisão o domínio da UPA através de estruturas fortemente tipadas em TypeScript, garantindo segurança estática e eliminando erros em tempo de execução.
+- **Como foi Implementado**:
+  - Definido nos arquivos `src/domain/entities/patient.entity.ts` e `src/domain/enums/priority-level.enum.ts`.
+- **Decisões Técnicas e Arquiteturais**:
+  1. *Interface do Domínio (`Patient`)*:
+     ```typescript
+     export interface Patient {
+       id: string;
+       nome: string;
+       idade: number;
+       cpf: string;
+       telefone: string;
+       email: string;
+       sintomas: string;
+       dataDeChegada: Date;
+       prioridade: PriorityLevel;
+       atendido: boolean;
+       dataAtendimento?: Date;
+     }
+     ```
+  2. *Enum Forte (`PriorityLevel`)*: Garante que os níveis de urgência assumam estritamente um dos valores mapeados (`'VERMELHO'`, `'LARANJA'`, `'AMARELO'`, `'VERDE'`, `'AZUL'`), impedindo o uso de strings arbitrárias.
+  3. *Mapeamentos com `Record`*: Criação das constantes `PRIORITY_WEIGHT` e `PRIORITY_MAX_WAIT_MINUTES` mapeadas via `Record<PriorityLevel, number>`, associando metadados médicos a cada nível de triagem.
 
-### **R07 — Validação Automatizada das Funcionalidades**
-- **Implementação**: Suíte de testes criada com o **Node.js Test Runner (`node:test`)** e asserções nativas (`node:assert`).
-- **Escopo de Testes**: Validações Regex, ordenação de prioridade da fila, regras de classificação de risco e persistência assíncrona.
+---
+
+### **R06 — Simulação de Comunicação com uma API (Async/Promises & JSON)**
+- **Objetivo do Requisito**: Implementar uma camada que simule a comunicação assíncrona com uma API externa de prontuários médicos, manipulando arquivos em formato JSON e lidando com operações assíncronas.
+- **Como foi Implementado**:
+  - Implementado em `src/infrastructure/api-simulator.service.ts` interagindo com o arquivo de dados `data/initial_patients.json`.
+- **Decisões Técnicas e Arquiteturais**:
+  1. *Manipulação Assíncrona via Promises*: Utilização do módulo nativo `fs/promises` (`readFile` e `writeFile`) integrado à sintaxe `async/await`.
+  2. *Simulação de Latência de Rede*: Criação da função utilitária `delay(ms)` envelopando `setTimeout` em uma Promise. Isso simula o tempo de resposta das requisições HTTP (`fetch`).
+  3. *Tratamento da Serialização de Datas*: Ao carregar dados do JSON (onde datas são armazenadas como strings ISO), a camada de infraestrutura converte explicitamente os campos em instâncias nativas do objeto `Date` de JavaScript.
+
+---
+
+### **R07 — Validação Automatizada das Funcionalidades (Node.js Test Runner)**
+- **Objetivo do Requisito**: Possuir testes automatizados cobrindo as principais regras de negócio do sistema (cadastro, validações, triagem, ordenação da fila e operações assíncronas) utilizando o **Node.js Test Runner (`node:test`)**.
+- **Como foi Implementado**:
+  - Criados 6 arquivos de teste no diretório `tests/` cobrindo 100% dos módulos de serviço e validação. Total de **30 testes unitários**.
+  - Utilização dos módulos nativos `node:test` (`describe`, `it`, `beforeEach`) e `node:assert`.
+- **Decisões Técnicas e Arquiteturais**:
+  1. *Zero Dependências de Teste Externas*: Em vez de instalar frameworks pesados como Jest ou Vitest, utilizou-se o test runner nativo do Node.js 20+, reduzindo o tempo total de execução da suíte para **~280ms**.
+  2. *Integração com `tsx`*: Configuração do script no `package.json`:
+     ```json
+     "scripts": {
+       "test": "node --test --import tsx tests/**/*.test.ts"
+     }
+     ```
+  3. *Isolamento de Estado*: Utilização de hooks `beforeEach(() => clearPatientStore())` para garantir que o estado acumulado em um teste não contamine o resultado dos testes subsequentes.
+
+---
 
 ### **RA01 — Validação de Dados com Expressões Regulares (Regex)**
-- **Implementação**: O módulo `src/validators/patient.validator.ts` aplica Expressões Regulares para validar os formatos dos campos de entrada:
-  - **CPF**: `^\d{3}\.\d{3}\.\d{3}-\d{2}$` ou `^\d{11}$` (formato com ou sem pontuação).
-  - **Telefone**: `^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$` (suporta fixo e celular com DDD).
-  - **E-mail**: `^[^\s@]+@[^\s@]+\.[^\s@]+$` (padrão RFC de endereço de e-mail).
+- **Objetivo do Requisito**: Aplicar Expressões Regulares (Regex) para validar rigidamente a qualidade e a formatação dos dados fornecidos pelo usuário no cadastro e atualização.
+- **Como foi Implementado**:
+  - Módulo centralizador em `src/validators/patient.validator.ts`.
+- **Decisões Técnicas e Justificativas**:
+  1. *CPF (`^(\d{3}\.\d{3}\.\d{3}-\d{2}|\d{11})$`)*: Valida tanto a máscara clássica (`000.000.000-00`) quanto a entrada apenas numérica (11 dígitos). Adicionalmente, foi implementado o **algoritmo de validação dos dígitos verificadores (checksum)** para rejeitar CPFs numericamente inválidos ou com sequências repetidas (`111.111.111-11`).
+  2. *Telefone (`^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$`)*: Aceita telefones fixos (8 dígitos) e celulares (9 dígitos) com ou sem parênteses no DDD.
+  3. *E-mail (`^[^\s@]+@[^\s@]+\.[^\s@]+$`)*: Valida o padrão RFC simplificado de endereços eletrônicos.
+  4. *Nome Completo (`^[A-Za-zÀ-ÖØ-öø-ÿ']{2,}(\s+[A-Za-zÀ-ÖØ-öø-ÿ']{2,})+$`)*: Exige obrigatoriamente nome e sobrenome com no mínimo 2 caracteres cada, permitindo acentuação em Português.
+
+---
 
 ### **RA02 — Aperfeiçoamento da Tipagem utilizando Utility Types**
-- **Implementação**: Aplicação explícita dos Utility Types do TypeScript em `src/domain/types/utility-types.ts`:
-  - `Partial<Patient>`: Utilizado no DTO de atualização (`PatientUpdateDTO`), permitindo alterar apenas os campos informados pelo usuário.
-  - `Omit<Patient, 'id' | 'dataDeChegada' | 'prioridade'>`: Utilizado no DTO de cadastro (`PatientRegistrationDTO`), exigindo do usuário apenas os dados de entrada sem expor campos gerados pelo sistema.
-  - `Pick<Patient, 'id' | 'nome' | 'prioridade'>`: Utilizado no resumo de atendimento (`PatientSummaryDTO`).
-  - `Readonly<Patient>`: Garante que os registros do paciente não sejam alterados acidentalmente fora do serviço responsável.
-  - `Record<PriorityLevel, number>`: Utilizado na contagem e estatísticas agregadas por prioridade (`PriorityCountRecord`).
+- **Objetivo do Requisito**: Incorporar recursos avançados de transformação de tipos do TypeScript (`Partial`, `Pick`, `Omit`, `Readonly`, `Record`), justificando a escolha de cada um no contexto do projeto.
+- **Como foi Implementado**:
+  - Definido em `src/domain/types/utility-types.ts`.
+- **Decisões Técnicas e Justificativas**:
+  1. **`Omit<Patient, 'id' | 'dataDeChegada' | 'prioridade' | 'atendido' | 'dataAtendimento'>`** (`PatientRegistrationDTO`):
+     - *Justificativa*: No formulário de cadastro, o usuário deve informar apenas os dados pessoais e sintomas. Os campos de ID, timestamp de chegada e status de atendimento são gerados internamente pelo sistema e não devem ser expostos na entrada.
+  2. **`Partial<Omit<Patient, 'id' | 'dataDeChegada'>>`** (`PatientUpdateDTO`):
+     - *Justificativa*: Na atualização de cadastro, o usuário pode querer alterar apenas o telefone ou o e-mail. O `Partial` torna todos os atributos editáveis opcionais, evitando a necessidade de reenviar o objeto completo.
+  3. **`Pick<Patient, 'id' | 'nome' | 'idade' | 'prioridade' | 'sintomas' | 'atendido'>`** (`PatientSummaryDTO`):
+     - *Justificativa*: Cria um tipo de resumo contendo apenas as propriedades essenciais para exibição rápida em listas ou relatórios de síntese na tela do terminal.
+  4. **`Readonly<Patient>`** (`ReadonlyPatient`):
+     - *Justificativa*: Garante que a camada de serviços entregue objetos imutáveis para a interface do usuário ou relatórios, impedindo modificações acidentais de propriedades de um paciente.
+  5. **`Record<PriorityLevel, number>`** (`PriorityCountRecord`):
+     - *Justificativa*: Garante que os relatórios estatísticos possuam uma chave obrigatoriamente mapeada para cada uma das cores do enum de prioridades.
+
+---
 
 ### **RA03 — Aplicação de Recurso Avançado do Ecossistema TypeScript (`ts-pattern`)**
-- **Implementação**: Integração da biblioteca **`ts-pattern`** em `src/services/classification.service.ts` para realizar *Pattern Matching* declarativo e seguro durante a triagem.
-- **Justificativa**: Substitui longas estruturas de `if/else` ou `switch` por correspondência de padrões fortemente tipada (`match(sintomas)...`), garantindo que todas as combinações de sintomas e sinais vitais (ex.: parada cardiorrespiratória, dor no peito, febre alta, ferimentos leves) sejam tratadas sem risco de `undefined`.
+- **Objetivo do Requisito**: Pesquisar e incorporar um recurso moderno do ecossistema TypeScript. Foi escolhida a biblioteca **`ts-pattern`** para aplicar **Pattern Matching** declarativo na triagem médica.
+- **Como foi Implementado**:
+  - Desenvolvido em `src/services/classification.service.ts`.
+- **Decisões Técnicas e Justificativas**:
+  1. *Pattern Matching com `match()` e `P.when()`*: Em vez de utilizar estruturas condicionais aninhadas (`if/else` longos ou `switch`), utiliza-se uma sintaxe fluente e funcional baseada na análise das palavras-chave dos sintomas:
+     ```typescript
+     return match(sanitizedSymptoms)
+       .with(P.when(s => containsKeyword(s, EMERGENCY_KEYWORDS)), () => PriorityLevel.EMERGENCY)
+       .with(P.when(s => containsKeyword(s, VERY_URGENT_KEYWORDS)), () => PriorityLevel.VERY_URGENT)
+       .with(P.when(s => containsKeyword(s, URGENT_KEYWORDS)), () => PriorityLevel.URGENT)
+       .with(P.when(s => containsKeyword(s, NON_URGENT_KEYWORDS)), () => PriorityLevel.NON_URGENT)
+       .with(P.when(s => containsKeyword(s, STANDARD_KEYWORDS)), () => PriorityLevel.STANDARD)
+       .otherwise(() => PriorityLevel.STANDARD);
+     ```
+  2. *Garantia de Exaustividade com `.exhaustive()`*: Na função `getPriorityDescription()`, o método `.exhaustive()` valida em **tempo de compilação** se todas as cores do enum `PriorityLevel` possuem um tratamento associado. Se um novo nível de prioridade for incluído no enum no futuro, o compilador TypeScript acusará erro na compilação, eliminando o risco de comportamentos indefinidos (`undefined`) em ambiente de produção.
 
 ---
 
@@ -141,7 +247,7 @@ npm run dev
 
 Os testes do sistema foram desenvolvidos com o test runner nativo do Node.js (`node:test`).
 
-Para executar a suíte completa de testes:
+Para executar a suíte completa de 30 testes automatizados:
 ```bash
 npm test
 ```
@@ -153,26 +259,32 @@ npm test
 Ao iniciar a aplicação (`npm start`), o menu interativo apresentará as seguintes opções:
 
 ```text
-==================================================
-   🏥 SISTEMA DE TRIAGEM E GERENCIAMENTO DA UPA
-==================================================
-1. Cadastrar Novo Paciente
-2. Classificar Paciente & Adicionar à Fila de Triagem
-3. Atender Próximo Paciente (Maior Prioridade)
-4. Consultar Fila de Atendimento
-5. Buscar Pacientes (por Nome ou CPF)
-6. Atualizar Cadastro de Paciente
-7. Exibir Estatísticas do Atendimento
-8. Carregar Dados de Exemplo da API Externa (Assíncrono)
-0. Sair do Sistema
-==================================================
+===========================================================
+    🏥 SISTEMA DE TRIAGEM E GERENCIAMENTO DA UPA
+===========================================================
+
+[ MENU PRINCIPAL ]
+
+ 1. Cadastrar Novo Paciente
+ 2. Classificar Risco & Reavaliar Paciente
+ 3. Atender Próximo Paciente (Maior Prioridade)
+ 4. Consultar Fila de Atendimento Ordenada
+ 5. Buscar / Pesquisar Pacientes
+ 6. Atualizar Cadastro de Paciente
+ 7. Exibir Estatísticas do Atendimento
+ 8. Recarregar Dados da API Externa
+ 9. Salvar Estado Atual no JSON da API
+ 0. Sair do Sistema
+
+===========================================================
 ```
 
-### **Exemplo 1: Cadastrar um Paciente e Classificar Risco**
-1. Selecione a opção `1` para cadastrar.
-2. Informe Nome: `Maria Silva`, Idade: `45`, CPF: `123.456.789-00`, Telefone: `(41) 99999-8888`, E-mail: `maria@email.com`, Sintomas: `Dor no peito intensa e falta de ar`.
-3. Selecione a opção `2` para classificar. O motor `ts-pattern` analisará os sintomas e atribuirá automaticamente a prioridade **VERMELHO (Emergência)**, inserindo Maria no topo da fila.
+### **Exemplo 1: Cadastrar um Paciente e Classificar Risco Automático**
+1. Selecione a opção `1` (Cadastrar Novo Paciente).
+2. Informe Nome: `Maria da Silva`, Idade: `45`, CPF: `529.982.247-25`, Telefone: `(41) 99999-8888`, E-mail: `maria@email.com`, Sintomas: `Forte dor no peito e falta de ar severa`.
+3. O sistema validará todos os campos via Regex e acionará o motor `ts-pattern`, identificando a palavra-chave *"dor no peito"* e atribuindo automaticamente a prioridade **🔴 LARANJA (Muito Urgente)**.
 
-### **Exemplo 2: Atendimento por Prioridade**
-1. Com os pacientes Maria (Vermelho - Emergência) e João (Verde - Pouco Urgente) na fila, selecione a opção `3` (Atender Próximo).
-2. O sistema chamará **Maria Silva** primeiro, independentemente de ter chegado depois de João, respeitando o Protocolo de Manchester.
+### **Exemplo 2: Atendimento por Prioridade Estrita (Protocolo de Manchester)**
+1. Com dois pacientes na fila (João - Verde / Pouco Urgente cadastrado às 14:00 e Maria - Laranja / Muito Urgente cadastrada às 14:15).
+2. Selecione a opção `3` (Atender Próximo Paciente).
+3. O sistema chamará **Maria da Silva** primeiro, pois o grau de urgência Laranja possui peso 2 (maior prioridade que Verde, peso 4), respeitando as regras médicas da UPA.
